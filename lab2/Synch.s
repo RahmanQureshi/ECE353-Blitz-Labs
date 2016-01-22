@@ -963,21 +963,8 @@ _Label_61:
 ! ELSE...
 	mov	112,r13		! source line 112
 	mov	"\0\0EL",r10
-! ASSIGNMENT STATEMENT...
-	mov	112,r13		! source line 112
-	mov	"\0\0AS",r10
-!   Prepare Argument: offset=8  value=oldIntStat  sizeInBytes=4
-	load	[r14+-24],r1
-	store	r1,[r15+0]
-!   Call the function
-	mov	112,r13		! source line 112
-	mov	"\0\0CA",r10
-	call	_P_Thread_SetInterruptsTo
-!   Retrieve Result: targetName=oldIntStat  sizeInBytes=4
-	load	[r15],r1
-	store	r1,[r14+-24]
 ! SEND STATEMENT...
-	mov	113,r13		! source line 113
+	mov	112,r13		! source line 112
 	mov	"\0\0SE",r10
 !   _temp_63 = &waitingThreads
 	load	[r14+8],r1
@@ -996,7 +983,7 @@ _Label_61:
 	add	r2,8,r2
 	call	r2
 ! SEND STATEMENT...
-	mov	114,r13		! source line 114
+	mov	113,r13		! source line 113
 	mov	"\0\0SE",r10
 !   if intIsZero (_P_Thread_currentThread) then goto _runtimeErrorNullPointer
 	set	_P_Thread_currentThread,r1
@@ -1012,6 +999,19 @@ _Label_61:
 	store	r1,[r15]
 	add	r2,16,r2
 	call	r2
+! ASSIGNMENT STATEMENT...
+	mov	114,r13		! source line 114
+	mov	"\0\0AS",r10
+!   Prepare Argument: offset=8  value=1  sizeInBytes=4
+	mov	1,r1
+	store	r1,[r15+0]
+!   Call the function
+	mov	114,r13		! source line 114
+	mov	"\0\0CA",r10
+	call	_P_Thread_SetInterruptsTo
+!   Retrieve Result: targetName=oldIntStat  sizeInBytes=4
+	load	[r15],r1
+	store	r1,[r14+-24]
 ! END IF...
 _Label_62:
 ! END WHILE...

@@ -109,9 +109,9 @@ code Synch
               heldBy = currentThread
               oldIntStat = SetInterruptsTo (oldIntStat)
             else
-              oldIntStat = SetInterruptsTo (oldIntStat)
               waitingThreads.AddToEnd (currentThread)
               currentThread.Sleep ()
+              oldIntStat = SetInterruptsTo (ENABLED)
             endIf
           endWhile
         endMethod
