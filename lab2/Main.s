@@ -113,6 +113,10 @@ _Global_th6:
 _Global_myLock:
 ! Static object
 	.word	_P_Synch_Mutex
+	.word	0
+	.word	0
+	.word	0
+	.word	0
 _Global_sharedInt:
 	.word	0
 _Global_thArr:
@@ -15712,9 +15716,9 @@ _Label_43:
 	.import	_CheckVersion_P_Thread_
 	cmp	r1,0
 	bne	_Label_44
-! Make sure _P_Synch_ has hash value 0xe53f1dee (decimal -448848402)
+! Make sure _P_Synch_ has hash value 0xad7eed45 (decimal -1384190651)
 	set	_packageName,r2
-	set	0xe53f1dee,r3
+	set	0xad7eed45,r3
 	call	_CheckVersion_P_Synch_
 	.import	_CheckVersion_P_Synch_
 	cmp	r1,0
@@ -15763,9 +15767,9 @@ _Label_465:
 	call	_P_Thread_InitializeScheduler
 ! CALL STATEMENT...
 !   Call the function
-	mov	25,r13		! source line 25
+	mov	26,r13		! source line 26
 	mov	"\0\0CA",r10
-	call	_function_39_MoreThreadExamples
+	call	_function_37_TestMutex
 ! CALL STATEMENT...
 !   Call the function
 	mov	29,r13		! source line 29
