@@ -1695,14 +1695,6 @@ _Label_381:
 	mov	2,r1
 	set	_P_Thread_currentInterruptStatus,r2
 	store	r1,[r2]
-! CALL STATEMENT...
-!   Prepare Argument: offset=8  value=95  sizeInBytes=1
-	mov	95,r1
-	storeb	r1,[r15+0]
-!   Call the function
-	mov	203,r13		! source line 203
-	mov	"\0\0CE",r10
-	call	printChar
 ! SEND STATEMENT...
 	mov	204,r13		! source line 204
 	mov	"\0\0SE",r10

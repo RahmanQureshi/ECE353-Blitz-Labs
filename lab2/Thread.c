@@ -200,7 +200,7 @@ code Thread
     -- call "Yield" explicitly, or until they call "Sleep".)
     --
       currentInterruptStatus = DISABLED
-      printChar ('_')
+      -- printChar ('_')
       currentThread.Yield ()
       currentInterruptStatus = ENABLED
     endFunction
