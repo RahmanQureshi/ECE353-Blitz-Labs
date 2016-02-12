@@ -9,17 +9,22 @@ code Main
   --     Dining Philospohers
 -----------------------------  Main  ---------------------------------
 
-  function main ()
+	function main ()
 	-- Uncomment below to run Dining Philosophers
-    InitializeScheduler ()
-    --DiningPhilosophers ()
-    --ThreadFinish()
-    --FatalError ("Need to implement")
+		InitializeScheduler ()
+		--DiningPhilosophers ()
+		--ThreadFinish()
+		--FatalError ("Need to implement")
 
 	-- Uncomment below to run Sleeping Barber
-	TheSleepingBarber()
-	ThreadFinish()	
-    endFunction
+		-- TheSleepingBarber()
+		-- ThreadFinish()	
+    
+	-- Uncomment below for gaming parlor
+		TheGamingParlor()
+		ThreadFinish()
+
+	endFunction
 
 -----------------------------  Dining Philosophers  ----------------------------
 
@@ -348,5 +353,113 @@ code Main
 
 
 -------------------------- The Gaming Parlor ---------------------------------------
+
+	var
+		gameAvailable: Condition
+		frontDesk: Mutex		
+		numDice: int
+
+	function TheGamingParlor()
+		var
+			customers: array[8] of Thread = new array of Thread{8 of new Thread}
+	
+		numDice = 8
+		frontDesk = new Mutex
+		frontDesk.Init()
+		gameAvailable = new Condition
+		gameAvailable.Init()
+
+		customers[0].Init ("A")
+		customers[0].Fork(PlayGame, 0)
+		customers[1].Init ("B")
+		customers[1].Fork(PlayGame, 0)
+		customers[2].Init ("C")
+		customers[2].Fork(PlayGame, 1)
+		customers[3].Init ("D")
+		customers[3].Fork(PlayGame, 1)
+		customers[4].Init ("E")
+		customers[4].Fork(PlayGame, 2)
+		customers[5].Init ("F")
+		customers[5].Fork(PlayGame, 2)
+		customers[6].Init ("G")
+		customers[6].Fork(PlayGame, 3)
+		customers[7].Init ("H")
+		customers[7].Fork(PlayGame, 3)
+	endFunction
+
+	function PlayGame(game:int)
+		var
+			numPlays: int
+		numPlays = 0
+		while numPlays < 5
+			numPlays = numPlays + 1
+			if (game == 0)
+				Request(4)
+				currentThread.Yield()
+				Return(4)
+			elseIf (game == 1)
+				Request(5)
+				currentThread.Yield()
+				Return(5)
+			elseIf (game == 2)
+				Request(2)
+				currentThread.Yield()
+				Return(2)
+			elseIf (game == 3)
+				Request(1)
+				currentThread.Yield()
+				Return(1)
+			endIf
+		endWhile
+	endFunction
+		
+	function PrintRequest(n:int)
+		print(currentThread.name)
+		print(" requests ")
+		printInt(n)
+		nl()
+		PrintAvailableDice()
+	endFunction
+
+	function PrintAvailableDice()
+		print("Num Dice Available: ")
+		printInt(numDice)
+		nl()	
+	endFunction
+	
+	function PrintProceeds(n:int)
+		print(currentThread.name)
+		print(" proceeds with ")
+		printInt(n)
+		nl()
+		PrintAvailableDice()
+	endFunction
+
+	function PrintReturn(n:int)
+		print(currentThread.name)
+		print(" returns ")
+		printInt(n)
+		nl()
+		PrintAvailableDice()
+	endFunction
+
+	function Request(numDiceRequested:int)
+		frontDesk.Lock()
+		PrintRequest(numDiceRequested)
+		while numDiceRequested > numDice
+			gameAvailable.Wait(&frontDesk)
+		endWhile
+		numDice = numDice - numDiceRequested
+		PrintProceeds(numDiceRequested)
+		frontDesk.Unlock()
+	endFunction
+
+	function Return(numDiceReturned:int)
+		frontDesk.Lock()
+		numDice = numDice + numDiceReturned
+		PrintReturn(numDiceReturned)
+		gameAvailable.Broadcast(&frontDesk)
+		frontDesk.Unlock()
+	endFunction
 
 endCode
