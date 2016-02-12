@@ -17,12 +17,12 @@ code Main
 		--FatalError ("Need to implement")
 
 	-- Uncomment below to run Sleeping Barber
-		-- TheSleepingBarber()
-		-- ThreadFinish()	
+		TheSleepingBarber()
+		ThreadFinish()	
     
 	-- Uncomment below for gaming parlor
-		TheGamingParlor()
-		ThreadFinish()
+		--TheGamingParlor()
+		--ThreadFinish()
 
 	endFunction
 
@@ -233,7 +233,7 @@ code Main
 		barber.Fork(GiveHairCuts, NUM_CHAIRS)
 
 		customers[0].Init ("1")
-		customers[0].Fork(GetHairCut, 1)
+		customers[0].Fork(GetHairCut, 2)
 		customers[1].Init ("2")
 		customers[1].Fork(GetHairCut, 1)
 		customers[2].Init ("3")
@@ -252,24 +252,30 @@ code Main
 	endFunction
 
 	function GetHairCut(numCuts: int)
-		access_lock.Lock()
-		PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "E")
-		if numWaitingCustomers < NUM_CHAIRS
-			numWaitingCustomers = numWaitingCustomers+1
-			PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "S")
-			access_lock.Unlock()
-			waitingCustomers.Up()
-			barberSem.Down() -- Get the barber or go to sleep, waiting until barber is ready
-			PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "B")
-			cuttingHair.Up()
-			currentThread.Yield() -- get_haircut()
-                        PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "F")
-                        cuttingHair.Up()
-			doneCutting.Down() -- wait for barber to end
-		else
-			access_lock.Unlock()
-		endIf
-		PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "L")
+		var
+			cutsReceived: int
+		cutsReceived = 0
+		while(cutsReceived < numCuts)
+			cutsReceived = cutsReceived + 1
+			access_lock.Lock()
+			PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "E")
+			if numWaitingCustomers < NUM_CHAIRS
+				numWaitingCustomers = numWaitingCustomers+1
+				PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "S")
+				access_lock.Unlock()
+				waitingCustomers.Up()
+				barberSem.Down() -- Get the barber or go to sleep, waiting until barber is ready
+				PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "B")
+				cuttingHair.Up()
+				currentThread.Yield() -- get_haircut()
+		                    PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "F")
+		                    cuttingHair.Up()
+				doneCutting.Down() -- wait for barber to end
+			else
+				access_lock.Unlock()
+			endIf
+			PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "L")
+		endWhile
 	endFunction
 
 	function GiveHairCuts(numChairs: int)
