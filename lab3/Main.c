@@ -258,6 +258,8 @@ code Main
 			PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "B")
 			cuttingHair.Up()
 			currentThread.Yield() -- get_haircut()
+                        PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "F")
+                        cuttingHair.Up()
 			doneCutting.Down() -- wait for barber to end
 		else
 			access_lock.Unlock()
@@ -275,6 +277,7 @@ code Main
 			barberSem.Up() -- barber is ready
 			cuttingHair.Down() -- wait for customer to begin
 			currentThread.Yield() -- cut_hair() 
+			cuttingHair.Down() -- wait for customer to end
 			PrintBarberEnd()
 			doneCutting.Up()
 		endWhile
