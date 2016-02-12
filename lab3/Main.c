@@ -196,6 +196,8 @@ code Main
 		barberSem: Semaphore
 		access_lock: Mutex
 		numCustomers: int
+		cuttingHair: Semaphore
+		doneCutting:Semaphore
 
 	function TheSleepingBarber()
 				
@@ -209,6 +211,10 @@ code Main
 		numWaitingCustomers = 0
 		barberSem = new Semaphore
 		barberSem.Init(0)
+		cuttingHair = new Semaphore
+		cuttingHair.Init(0)
+		doneCutting = new Semaphore
+		doneCutting.Init(0)
 	
 		print("RUNNING THE SLEEPING BARBER")
 		nl()
@@ -216,6 +222,10 @@ code Main
 
 		access_lock = new Mutex
 		access_lock.Init()
+
+		barber = new Thread
+		barber.Init("B")
+		barber.Fork(GiveHairCuts, NUM_CHAIRS)
 
 		customers[0].Init ("1")
 		customers[0].Fork(GetHairCut, 1)
@@ -234,9 +244,6 @@ code Main
 		customers[7].Init ("8")
 		customers[7].Fork(GetHairCut, 1)
 
-		barber = new Thread
-		barber.Init("B")
-		barber.Fork(GiveHairCuts, NUM_CHAIRS)
 	endFunction
 
 	function GetHairCut(numCuts: int)
@@ -249,7 +256,9 @@ code Main
 			waitingCustomers.Up()
 			barberSem.Down() -- Get the barber or go to sleep, waiting until barber is ready
 			PrintCustomerState(charToInt(currentThread.name[0]) - charToInt('0'), "B")
-			-- Get Haircut
+			cuttingHair.Up()
+			currentThread.Yield() -- get_haircut()
+			doneCutting.Down() -- wait for barber to end
 		else
 			access_lock.Unlock()
 		endIf
@@ -264,12 +273,10 @@ code Main
 			access_lock.Unlock()
 			PrintBarberStart()
 			barberSem.Up() -- barber is ready
-			-- cut_hair() 
-			currentThread.Yield()
-			currentThread.Yield()
-			currentThread.Yield()
-			currentThread.Yield()
+			cuttingHair.Down() -- wait for customer to begin
+			currentThread.Yield() -- cut_hair() 
 			PrintBarberEnd()
+			doneCutting.Up()
 		endWhile
 	endFunction
 
