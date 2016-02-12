@@ -1,0 +1,46 @@
+! BLITZ Simulation Constants
+!
+! This file is read by the BLITZ emulator when it starts up and after a
+! "reset" command.  This file is used to initialize various values that
+! will be used by the emulator.
+!
+! This file was produced by the emulator (with the "sim" command).  It may
+! be edited to change any or all values.
+!
+! Each line has variable name followed by an integer value.  A value may
+! be specified in either decimal (e.g., "1234") or hex (e.g., "0x1234abcd").
+! Values may be left out if desired, in which case a default will be used.
+! In the case of the random seed, any value specified here will override a
+! value given with a command line option (-r).
+!
+!
+KEYBOARD_WAIT_TIME                 30000
+KEYBOARD_WAIT_TIME_VARIATION         100
+TERM_OUT_DELAY                       100
+TERM_OUT_DELAY_VARIATION              10
+
+TIME_SLICE                          2500
+TIME_SLICE_VARIATION                  30
+
+DISK_SEEK_TIME                     10000
+DISK_SETTLE_TIME                    1000
+DISK_ROTATIONAL_DELAY                100
+DISK_ACCESS_VARIATION                 10
+DISK_READ_ERROR_PROBABILITY          500
+DISK_WRITE_ERROR_PROBABILITY         500
+
+INIT_RANDOM_SEED              1829742401
+
+MEMORY_SIZE                   0x01000000
+
+MEMORY_MAPPED_AREA_LOW        0x00FFFF00
+MEMORY_MAPPED_AREA_HIGH       0x00FFFFFF
+
+SERIAL_STATUS_WORD_ADDRESS    0x00FFFF00
+SERIAL_DATA_WORD_ADDRESS      0x00FFFF04
+
+DISK_STATUS_WORD_ADDRESS      0x00FFFF08
+DISK_COMMAND_WORD_ADDRESS     0x00FFFF08
+DISK_MEMORY_ADDRESS_REGISTER  0x00FFFF0C
+DISK_SECTOR_NUMBER_REGISTER   0x00FFFF10
+DISK_SECTOR_COUNT_REGISTER    0x00FFFF14

@@ -103,7 +103,6 @@ code Synch
 
       method Lock ()
           var oldIntStat: int
-          oldIntStat = SetINterruptsTo (DISABLED)
           while (self.IsHeldByCurrentThread() != true)
             oldIntStat = SetInterruptsTo (DISABLED)
             if heldBy == null
