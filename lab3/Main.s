@@ -5575,16 +5575,16 @@ main:
 	call	_P_Thread_InitializeScheduler
 ! CALL STATEMENT...
 !   Call the function
-	mov	20,r13		! source line 20
+	mov	24,r13		! source line 24
 	mov	"\0\0CA",r10
-	call	_function_66_TheSleepingBarber
+	call	_function_58_TheGamingParlor
 ! CALL STATEMENT...
 !   Call the function
-	mov	21,r13		! source line 21
+	mov	25,r13		! source line 25
 	mov	"\0\0CA",r10
 	call	_P_Thread_ThreadFinish
 ! RETURN STATEMENT...
-	mov	21,r13		! source line 21
+	mov	25,r13		! source line 25
 	mov	"\0\0RE",r10
 	add	r15,4,r15
 	pop	r13

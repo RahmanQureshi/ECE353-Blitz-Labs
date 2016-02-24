@@ -17,12 +17,12 @@ code Main
 		--FatalError ("Need to implement")
 
 	-- Uncomment below to run Sleeping Barber
-		TheSleepingBarber()
-		ThreadFinish()	
+		--TheSleepingBarber()
+		--ThreadFinish()	
     
 	-- Uncomment below for gaming parlor
-		--TheGamingParlor()
-		--ThreadFinish()
+		TheGamingParlor()
+		ThreadFinish()
 
 	endFunction
 
