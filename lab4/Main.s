@@ -525,11 +525,11 @@ _Label_483:
 	call	r2
 ! CALL STATEMENT...
 !   Call the function
-	mov	113,r13		! source line 113
+	mov	114,r13		! source line 114
 	mov	"\0\0CA",r10
-	call	_function_28_RunProcessManagerTests
+	call	_function_26_RunFrameManagerTests
 ! RETURN STATEMENT...
-	mov	113,r13		! source line 113
+	mov	114,r13		! source line 114
 	mov	"\0\0RE",r10
 	add	r15,36,r15
 	pop	r13

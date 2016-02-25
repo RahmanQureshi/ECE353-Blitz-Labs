@@ -110,8 +110,8 @@ code Main
 
       -- Run more thorough tests.
       -- RunThreadManagerTests ()
-      RunProcessManagerTests ()
-      -- RunFrameManagerTests ()
+      -- RunProcessManagerTests ()
+      RunFrameManagerTests ()
 
       -- RuntimeExit ()
 
