@@ -851,10 +851,11 @@ code Kernel
         processManagerLock = new Mutex
         aProcessBecameFree = new Condition
         aProcessDied = new Condition
-
         for i = 0 to MAX_NUMBER_OF_PROCESSES-1 by 1
           freeList.AddToEnd(&processTable[i])
           processTable[i].status = FREE
+					processTable[i].addrSpace = new AddrSpace
+					processTable[i].addrSpace.Init()
         endFor
         processManagerLock.Init()
         aProcessBecameFree.Init()
@@ -1015,13 +1016,15 @@ code Kernel
 
       method GetAFrame () returns int
         --
+	-- NOTE: I COMMENTED OUT THE LOCK BECAUSE GETNEWFRAMES ALSO LOCKS 
+	--
         -- Allocate a single frame and return its physical address.  If no frames
         -- are currently available, wait until the request can be completed.
         --
           var f, frameAddr: int
 
           -- Acquire exclusive access to the frameManager data structure...
-          frameManagerLock.Lock ()
+          --frameManagerLock.Lock ()
 
           -- Wait until we have enough free frames to entirely satisfy the request...
           while numberFreeFrames < 1
@@ -1033,7 +1036,7 @@ code Kernel
           numberFreeFrames = numberFreeFrames - 1
 
           -- Unlock...
-          frameManagerLock.Unlock ()
+          --frameManagerLock.Unlock ()
 
           -- Compute and return the physical address of the frame...
           frameAddr = PHYSICAL_ADDRESS_OF_FIRST_PAGE_FRAME + (f * PAGE_SIZE)
@@ -1068,8 +1071,8 @@ code Kernel
 					bitIndex: int
 					frameAddr: int
 				frameManagerLock.Lock()
-				for i = 0 to aPageTable.numberOfPages - 1
-					frameAddr = aPageTable.ExtractFrameAddr(i)
+				for i = 0 to (*aPageTable).numberOfPages - 1
+					frameAddr = (*aPageTable).ExtractFrameAddr(i)
 					bitIndex = (frameAddr - PHYSICAL_ADDRESS_OF_FIRST_PAGE_FRAME) / PAGE_SIZE
 					framesInUse.ClearBit(bitIndex)
 				endFor
