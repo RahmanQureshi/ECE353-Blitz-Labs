@@ -109,11 +109,11 @@ code Main
 */
 
       -- Run more thorough tests.
-      RunThreadManagerTests ()
+      -- RunThreadManagerTests ()
       RunProcessManagerTests ()
-      RunFrameManagerTests ()
+      -- RunFrameManagerTests ()
 
-      RuntimeExit ()
+      -- RuntimeExit ()
 
     endFunction
 

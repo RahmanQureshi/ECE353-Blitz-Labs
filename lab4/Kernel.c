@@ -692,6 +692,10 @@ code Kernel
         -- 
 						var
 							i: int
+						threadTable = new array of Thread {MAX_NUMBER_OF_PROCESSES of new Thread}
+						freeList = new List[Thread]
+						threadManagerLock = new Mutex
+						aThreadIsAvailable = new Condition
 						for i = 0 to MAX_NUMBER_OF_PROCESSES-1 by 1
 							threadTable[i].Init("ThreadNameHere")
 							threadTable[i].status = UNUSED
@@ -785,7 +789,8 @@ code Kernel
         --
         -- var i: int
           self.PrintShort ()
-          addrSpace.Print ()
+-- uncomment this later as well
+          -- addrSpace.Print ()
           print ("    myThread = ")
           ThreadPrintShort (myThread)
 -- Uncomment this code later...
@@ -839,8 +844,21 @@ code Kernel
         --
         -- This method is called once at kernel startup time to initialize
         -- the one and only "processManager" object.  
-        --
-        -- NOT IMPLEMENTED
+        var
+          i: int
+        freeList = new List[ProcessControlBlock]
+        processTable = new array of ProcessControlBlock {MAX_NUMBER_OF_PROCESSES of new ProcessControlBlock}
+        processManagerLock = new Mutex
+        aProcessBecameFree = new Condition
+        aProcessDied = new Condition
+
+        for i = 0 to MAX_NUMBER_OF_PROCESSES-1 by 1
+          freeList.AddToEnd(&processTable[i])
+          processTable[i].status = FREE
+        endFor
+        processManagerLock.Init()
+        aProcessBecameFree.Init()
+        aProcessDied.Init()
         endMethod
 
       ----------  ProcessManager . Print  ----------
@@ -895,8 +913,18 @@ code Kernel
         -- This method returns a new ProcessControlBlock; it will wait
         -- until one is available.
         --
-          -- NOT IMPLEMENTED
-          return null
+				var
+					nextProcessPtr: ptr to ProcessControlBlock
+				processManagerLock.Lock()
+				while(freeList.IsEmpty())
+					aProcessBecameFree.Wait(&processManagerLock)
+				endWhile
+				nextProcessPtr = freeList.Remove()
+				(*nextProcessPtr).pid = nextPid
+				nextPid = nextPid + 1
+				(*nextProcessPtr).status = ACTIVE
+				processManagerLock.Unlock()
+        return nextProcessPtr
         endMethod
 
       ----------  ProcessManager . FreeProcess  ----------
@@ -905,10 +933,12 @@ code Kernel
         --
         -- This method is passed a ptr to a Process;  It moves it
         -- to the FREE list.
-        --
-          -- NOT IMPLEMENTED
+				processManagerLock.Lock()
+				(*p).status = FREE
+				freeList.AddToEnd(p)
+				aProcessBecameFree.Signal(&processManagerLock)
+				processManagerLock.Unlock()
         endMethod
-
 
     endBehavior
 
@@ -1014,8 +1044,12 @@ code Kernel
       ----------  FrameManager . GetNewFrames  ----------
 
       method GetNewFrames (aPageTable: ptr to AddrSpace, numFramesNeeded: int)
-          -- NOT IMPLEMENTED
-        endMethod
+				frameManagerLock.Lock()
+        while numberFreeFrames < 1
+          newFramesAvailable.Wait (&frameManagerLock)
+        endWhile
+				frameManagerLock.Unlock()
+				endMethod
 
       ----------  FrameManager . ReturnAllFrames  ----------
 
