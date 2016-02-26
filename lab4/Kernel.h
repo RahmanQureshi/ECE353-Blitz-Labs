@@ -263,6 +263,7 @@ header Kernel
       Init ()
       Print ()
       GetAFrame () returns int                         -- returns addr of frame
+      GetAFrame2 () returns int
       GetNewFrames (aPageTable: ptr to AddrSpace, numFramesNeeded: int)
       ReturnAllFrames (aPageTable: ptr to AddrSpace)
   endClass

@@ -852,10 +852,9 @@ code Kernel
         aProcessBecameFree = new Condition
         aProcessDied = new Condition
         for i = 0 to MAX_NUMBER_OF_PROCESSES-1 by 1
+					processTable[i].Init()
           freeList.AddToEnd(&processTable[i])
           processTable[i].status = FREE
-					processTable[i].addrSpace = new AddrSpace
-					processTable[i].addrSpace.Init()
         endFor
         processManagerLock.Init()
         aProcessBecameFree.Init()
@@ -1015,16 +1014,13 @@ code Kernel
       ----------  FrameManager . GetAFrame  ----------
 
       method GetAFrame () returns int
-        --
-	-- NOTE: I COMMENTED OUT THE LOCK BECAUSE GETNEWFRAMES ALSO LOCKS 
-	--
         -- Allocate a single frame and return its physical address.  If no frames
         -- are currently available, wait until the request can be completed.
         --
           var f, frameAddr: int
 
           -- Acquire exclusive access to the frameManager data structure...
-          --frameManagerLock.Lock ()
+          frameManagerLock.Lock ()
 
           -- Wait until we have enough free frames to entirely satisfy the request...
           while numberFreeFrames < 1
@@ -1036,7 +1032,22 @@ code Kernel
           numberFreeFrames = numberFreeFrames - 1
 
           -- Unlock...
-          --frameManagerLock.Unlock ()
+          frameManagerLock.Unlock ()
+
+          -- Compute and return the physical address of the frame...
+          frameAddr = PHYSICAL_ADDRESS_OF_FIRST_PAGE_FRAME + (f * PAGE_SIZE)
+          -- printHexVar ("GetAFrame returning frameAddr", frameAddr)
+          return frameAddr
+        endMethod
+
+      method GetAFrame2 () returns int
+        -- Allocate a single frame and return its physical address.  If no frames
+        -- are currently available, wait until the request can be completed.
+        --
+          var f, frameAddr: int
+
+          -- Find a free frame and allocate it...
+          f = framesInUse.FindZeroAndSet ()
 
           -- Compute and return the physical address of the frame...
           frameAddr = PHYSICAL_ADDRESS_OF_FIRST_PAGE_FRAME + (f * PAGE_SIZE)
@@ -1055,7 +1066,7 @@ code Kernel
           newFramesAvailable.Wait (&frameManagerLock)
         endWhile
 				for i = 0 to numFramesNeeded - 1
-					frameAddr = self.GetAFrame()
+					frameAddr = self.GetAFrame2()
 					(*aPageTable).SetFrameAddr(i, frameAddr)
 				endFor
 				numberFreeFrames = numberFreeFrames - numFramesNeeded
