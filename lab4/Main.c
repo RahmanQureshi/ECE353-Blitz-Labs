@@ -109,8 +109,8 @@ code Main
 */
 
       -- Run more thorough tests.
-      -- RunThreadManagerTests ()
-      -- RunProcessManagerTests ()
+      RunThreadManagerTests ()
+      RunProcessManagerTests ()
       RunFrameManagerTests ()
 
       -- RuntimeExit ()

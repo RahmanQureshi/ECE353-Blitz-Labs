@@ -1,0 +1,22 @@
+		var
+			pcbPtr: ptr to ProcessControlBlock
+			openFilePtr: ptr to OpenFile
+			addrSpace: AddrSpace
+			entryPoint: int
+			initUserStackTop: int
+			initSystemStackTop: int
+			junk: int
+		junk = SetInterruptsTo (DISABLED)
+		pcbPtr = processManager.GetANewProcess()
+		addrSpace = (*pcbPtr).addrSpace
+		(*pcbPtr).myThread = currentThread
+		(*currentThread).myProcess = pcbPtr
+		openFilePtr = fileManager.Open("TestProgram1")
+		entryPoint = (*openFilePtr).LoadExecutable(&addrSpace)
+		fileManager.Close(openFilePtr)
+		initUserStackTop = addrSpace.numberOfPages*PAGE_SIZE 
+		initSystemStackTop = (& currentThread.systemStack[SYSTEM_STACK_SIZE-1]) asInteger
+		(*currentThread).isUserThread = true
+		addrSpace.SetToThisPageTable()
+		print("Becoming User Thread")
+		BecomeUserThread(initUserStackTop, entryPoint, initSystemStackTop)

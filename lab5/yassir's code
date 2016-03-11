@@ -1,0 +1,52 @@
+var
+	processControl: ptr to ProcessControlBlock
+	openFilePtr: ptr to OpenFile
+	loadSuccess: int	
+	initUserStackTop: int
+	initSystemStackTop: ptr to int
+	oldIntStatus: int
+
+        --strBuffer: array [MAX_STRING_SIZE] of char
+        --ret: int
+
+        --print("Handle Sys Create Variables... \n")
+        --print("Variable: filename\n")
+        --ret = currentThread.myProcess.addrSpace.GetStringFromVirtual(
+        --        &strBuffer,
+        --        funct asInteger,
+        --        MAX_STRING_SIZE)
+
+	--print("PRINTING FUNCTION NAME")
+	--nl()
+        --print(&strBuffer)
+
+
+
+	processControl = processManager.GetANewProcess()
+
+	processControl.myThread = currentThread
+
+	currentThread.myProcess = processControl
+
+	openFilePtr = fileManager.Open("TestProgram4")
+
+	loadSuccess = (*openFilePtr).LoadExecutable(
+		&(currentThread.myProcess.addrSpace)
+		)
+	
+	fileManager.Close(openFilePtr) --NOT SURE IF WE NEED THIS
+
+	initUserStackTop = (currentThread.myProcess.addrSpace.numberOfPages)*(PAGE_SIZE)
+
+	initSystemStackTop = &(currentThread.systemStack[SYSTEM_STACK_SIZE-1])
+
+	oldIntStatus = SetInterruptsTo(DISABLED)	
+
+        currentThread.myProcess.addrSpace.SetToThisPageTable()
+
+	
+	currentThread.isUserThread = true
+
+	print("\nATTEMPTING TO BECOME A USER THREAD\n")
+
+	BecomeUserThread (initUserStackTop, loadSuccess, initSystemStackTop asInteger)

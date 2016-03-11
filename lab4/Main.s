@@ -525,6 +525,16 @@ _Label_483:
 	call	r2
 ! CALL STATEMENT...
 !   Call the function
+	mov	112,r13		! source line 112
+	mov	"\0\0CA",r10
+	call	_function_30_RunThreadManagerTests
+! CALL STATEMENT...
+!   Call the function
+	mov	113,r13		! source line 113
+	mov	"\0\0CA",r10
+	call	_function_28_RunProcessManagerTests
+! CALL STATEMENT...
+!   Call the function
 	mov	114,r13		! source line 114
 	mov	"\0\0CA",r10
 	call	_function_26_RunFrameManagerTests
