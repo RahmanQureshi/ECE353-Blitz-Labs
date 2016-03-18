@@ -27,7 +27,7 @@ code Kernel
 
 		currentThread.myProcess = pcb
 
-		openFilePtr = fileManager.Open("TestProgram1")
+		openFilePtr = fileManager.Open("TestProgram3")
 
 		entryPoint = (*openFilePtr).LoadExecutable(&(pcb.addrSpace))
 
@@ -904,6 +904,7 @@ code Kernel
           freeList.AddToEnd(&processTable[i])
           processTable[i].status = FREE
         endFor
+		nextPid = 0
         processManagerLock.Init()
         aProcessBecameFree.Init()
         aProcessDied.Init()
@@ -968,12 +969,67 @@ code Kernel
 					aProcessBecameFree.Wait(&processManagerLock)
 				endWhile
 				nextProcessPtr = freeList.Remove()
-				(*nextProcessPtr).pid = nextPid
 				nextPid = nextPid + 1
+				(*nextProcessPtr).pid = nextPid
 				(*nextProcessPtr).status = ACTIVE
 				processManagerLock.Unlock()
         return nextProcessPtr
         endMethod
+
+      ----------  ProcessManager . TurnIntoZombie  ----------
+
+      method TurnIntoZombie (p: ptr to ProcessControlBlock)
+		var
+			i: int
+			parentPcb: ptr to ProcessControlBlock
+		processManager.processManagerLock.Lock()
+
+		-- take care of children of p
+		for i = 0 to MAX_NUMBER_OF_PROCESSES-1 by 1
+			if processManager.processTable[i].pid == p.parentsPid -- locate parent while dealing with children
+				parentPcb = &(processManager.processTable[i])
+			endIf
+			if processManager.processTable[i].status == ZOMBIE && processManager.processTable[i].parentsPid == p.pid
+				processManager.processTable[i].status = FREE	
+				processManager.freeList.AddToEnd(&processManager.processTable[i])
+				processManager.aProcessBecameFree.Signal(&(processManager.processManagerLock))
+			endIf
+		endFor
+
+		-- handle parent of p, turn into zombie or free self
+		if parentPcb != null && parentPcb.status == ACTIVE
+			p.status = ZOMBIE
+			processManager.aProcessDied.Broadcast(&(processManager.processManagerLock))
+		else
+			p.status = FREE
+			processManager.freeList.AddToEnd(p)
+			processManager.aProcessBecameFree.Signal(&(processManager.processManagerLock))	
+		endIf
+
+		processManager.processManagerLock.Unlock()
+
+      endMethod
+
+      ----------  ProcessManager . TurnIntoZombie  ----------
+
+      method WaitForZombie (proc: ptr to ProcessControlBlock) returns int
+		var
+			procExitStatus: int
+
+		processManager.processManagerLock.Lock()
+		
+		while proc.status != ZOMBIE
+			processManager.aProcessDied.Wait(&(processManager.processManagerLock))
+		endWhile
+	
+		procExitStatus = proc.exitStatus
+		proc.status = FREE
+		processManager.freeList.AddToEnd(proc)
+		processManager.aProcessBecameFree.Signal(&(processManager.processManagerLock))	
+
+		processManager.processManagerLock.Unlock()
+		return procExitStatus
+      endMethod
 
       ----------  ProcessManager . FreeProcess  ----------
 
@@ -1007,8 +1063,17 @@ code Kernel
     -- This routine is called when a process is to be terminated.  It will
     -- free the resources held by this process and will terminate the
     -- current thread.
-    --
-      FatalError ("ProcessFinish is not implemented")
+ 		var
+			oldIntStatus: int
+		currentThread.myProcess.exitStatus = exitStatus
+		oldIntStatus = SetInterruptsTo (DISABLED)
+		currentThread.isUserThread = false
+		oldIntStatus = SetInterruptsTo (oldIntStatus)
+		frameManager.ReturnAllFrames(&(currentThread.myProcess.addrSpace))
+		processManager.TurnIntoZombie(currentThread.myProcess)
+		currentThread.myProcess.myThread = null
+		currentThread.myProcess = null
+		ThreadFinish()
     endFunction
 
 -----------------------------  FrameManager  ---------------------------------
@@ -1726,48 +1791,93 @@ code Kernel
 -----------------------------  Handle_Sys_Exit  ---------------------------------
 
   function Handle_Sys_Exit (returnStatus: int)
-      -- NOT IMPLEMENTED
-		print("Handle_Sys_Exit invoked!")
-		nl()
-		print("returnState: ")
-		printInt(returnStatus)
-		nl()
+		ProcessFinish(returnStatus)
     endFunction
 
 -----------------------------  Handle_Sys_Shutdown  ---------------------------------
 
   function Handle_Sys_Shutdown ()
       -- NOT IMPLEMENTED
-	FatalError("FATAL ERROR in UserProgram: \"Syscall 'Shutdown' was invoked by a user thread\" -- TERMINATING!")
     endFunction
 
 -----------------------------  Handle_Sys_Yield  ---------------------------------
 
   function Handle_Sys_Yield ()
-      -- NOT IMPLEMENTED
-		print("Handle_Sys_Yield invoked!")
-		nl()
+		currentThread.Yield()
     endFunction
 
 -----------------------------  Handle_Sys_Fork  ---------------------------------
 
   function Handle_Sys_Fork () returns int
-      -- NOT IMPLEMENTED
-		print("Handle_Sys_Fork invoked!")
-		nl()
-      return 1000
+		var
+			newThread: ptr to Thread
+			newPCB: ptr to ProcessControlBlock
+			junk: int
+			i: int
+			oldUserPC: int
+
+		-- Create and link a new process and thread
+		newThread = threadManager.GetANewThread()
+		newPCB = processManager.GetANewProcess()
+		newPCB.myThread = newThread
+		newPCB.parentsPid = currentThread.myProcess.pid
+		newThread.status = READY
+		newThread.myProcess = newPCB
+
+		-- Copy user registers to new thread
+		SaveUserRegs(&(newThread.userRegs[0]))
+
+		junk = SetInterruptsTo (ENABLED) -- allow other threads to run now that the user registers have been saved
+		
+		-- Initialize stack top
+		newThread.stackTop = &(newThread.systemStack[SYSTEM_STACK_SIZE-1])
+
+		frameManager.GetNewFrames(&(newPCB.addrSpace), currentThread.myProcess.addrSpace.numberOfPages)		
+		for i = 0 to currentThread.myProcess.addrSpace.numberOfPages-1 by 1
+			MemoryCopy(newPCB.addrSpace.ExtractFrameAddr(i) , currentThread.myProcess.addrSpace.ExtractFrameAddr(i), PAGE_SIZE)		
+			if currentThread.myProcess.addrSpace.IsWritable(i) == false -- copy frame state (writable or not)
+				newPCB.addrSpace.ClearWritable(i)	
+			else
+				newPCB.addrSpace.SetWritable(i) -- copy address space contents
+			endIf	
+		endFor
+	
+		-- fork
+		oldUserPC = GetOldUserPCFromSystemStack()
+		newThread.Fork(ResumeChildAfterFork, oldUserPC)	
+
+		return newPCB.pid
+
     endFunction
+
+	function ResumeChildAfterFork (startPC: int)
+		var
+			junk: int
+			initUserStackTop: int
+			initSystemStackTop: int
+
+		junk = SetInterruptsTo (DISABLED)
+		currentThread.myProcess.addrSpace.SetToThisPageTable()
+		RestoreUserRegs(&(currentThread.userRegs[0]))
+		currentThread.isUserThread = true
+		initUserStackTop = currentThread.userRegs[14]
+		initSystemStackTop = (& currentThread.systemStack[SYSTEM_STACK_SIZE-1]) asInteger
+		BecomeUserThread(initUserStackTop, startPC, initSystemStackTop)
+	endFunction
 
 -----------------------------  Handle_Sys_Join  ---------------------------------
 
   function Handle_Sys_Join (processID: int) returns int
-      -- NOT IMPLEMENTED
-		print("Handle_Sys_Join invoked!")
-		nl()
-		print("Process id: ")
-		printInt(processID)
-		nl()
-      return 2000
+		var 
+			i:int
+			childExitStatus: int
+		for i = 0 to MAX_NUMBER_OF_PROCESSES-1 by 1
+			if processManager.processTable[i].pid == processID && processManager.processTable[i].parentsPid == currentThread.myProcess.pid && processManager.processTable[i].status != FREE
+				childExitStatus = processManager.WaitForZombie(&(processManager.processTable[i]))
+				return childExitStatus			
+			endIf		
+		endFor
+      return -1
     endFunction
 
 -----------------------------  Handle_Sys_Exec  ---------------------------------
