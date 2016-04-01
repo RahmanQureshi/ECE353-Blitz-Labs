@@ -2158,7 +2158,6 @@ code Kernel
 				return -1 -- error			
 			endIf
 			currentThread.myProcess.addrSpace.SetReferenced(virtPage)
-			currentThread.myProcess.addrSpace.SetDirty(virtPage)
 			destAddr = currentThread.myProcess.addrSpace.ExtractFrameAddr(virtPage) + offset
 			readSuccess = fileManager.SynchWrite(openFile, destAddr, nextPosInFile, currentChunkSize)
 			nextPosInFile = nextPosInFile + currentChunkSize
