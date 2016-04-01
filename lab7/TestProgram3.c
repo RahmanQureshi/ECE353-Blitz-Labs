@@ -25,11 +25,11 @@ code TestProgram3
 
 
       --SysExitTest ()
-      --BasicForkTest ()
+      BasicForkTest ()
       --YieldTest ()
       --ForkTest ()
       --JoinTest1 ()
-      JoinTest2 ()
+      --JoinTest2 ()
       --JoinTest3 ()
       --JoinTest4 ()
       --ManyProcessesTest1 ()
@@ -280,7 +280,7 @@ code TestProgram3
       pid1 = Sys_Fork ()
       if pid1 == 0
         -- Code for child 1
-	print ("Child 1 running...\n")
+        print ("Child 1 running...\n")
         Sys_Yield ()
         Sys_Exit (100)
       endIf
