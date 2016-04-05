@@ -1,0 +1,156 @@
+[lab8]% blitz -g os -raw -wait
+Beginning execution...
+====================  KPL PROGRAM STARTING  ====================
+Initializing Thread Scheduler...
+Initializing Thread Manager...
+Initializing Frame Manager...
+AllocateRandomFrames called.  NUMBER_OF_PHYSICAL_PAGE_FRAMES = 512
+Initializing Disk Driver...
+Initializing Serial Driver...
+Initializing File Manager...
+Opening 'stdin' and 'stdout'...
+Okay.
+Okay.
+This menu works best in raw mode.
+
+====================  MENU  ====================
+  1  -  BasicSerialTest
+  2  -  KeyTest
+  3  -  EchoTest
+  4  -  LineEchoTest
+  5  -  EOFTest
+  6  -  OpenCloseTerminalTest
+  7  -  TerminalErrorTest
+  8  -  Shell
+  9  -  Quit
+Please select by number: 8
+Welcome to the BLITZ Shell Program.
+  Type 'exit' to terminate.
+  Type 'cat < help' for more info.
+% cat < help
+This shell is a Unix-like shell for the BLITZ Operating System.
+
+At the prompt (%) you can enter a command.  "stdin" and "stdout" can be
+redirected using the "<" and ">" symbols.
+
+Here are some examples:
+  hello
+    If it exists, the program named "hello" will be executed.
+  cat < fileA > fileB
+    As in Unix, except file lengths may not be changed.  Also,
+    both files must exist ahead of time.
+  hello > fileC
+    Write the output of executing "hello" into "fileC".
+  cat < script
+    Print out a file called "script".
+  sh < script > fileD
+    This will execute a sub-shell, using commands from file "script"
+    as input, and the output will be saved to "fileD".
+  exit
+    This command is built-in to the shell and will terminate it.
+
+The BLITZ disk has these files to play with:
+  help  --  Which you are reading
+  fileA, fileB, fileC  --  Each of these has length 54
+  fileD --  A file of size 1500
+  script
+     This file contains the following commands:
+
+hello
+cat < fileB
+cat < fileA
+cat < fileA > fileB
+cat < fileB
+hello > fileB
+cat < fileB
+exit
+
+Try this:
+  sh < script > fileD
+  cat < fileD
+
+What this shell does not have:
+  piping, using the |
+  background computation, using &
+  any ability to pass command line arguments
+  a lot more
+% hello
+Hello, world!
+% cat < fileA > fileB
+% hello > fileC
+% cat < script
+hello
+cat < fileB
+cat < fileA
+cat < fileA > fileB
+cat < fileB
+hello > fileB
+cat < fileB
+exit
+% sh < script > fileD
+% cat < fileD
+Welcome to the BLITZ Shell Program.
+  Type 'exit' to terminate.
+  Type 'cat < help' for more info.
+% hello
+Hello, world!
+% cat < fileB
+abcdefghijklmnopqrstuvwxyz
+abcdefghijklmnopqrstuvwxyz
+% cat < fileA
+abcdefghijklmnopqrstuvwxyz
+abcdefghijklmnopqrstuvwxyz
+% cat < fileA > fileB
+% cat < fileB
+abcdefghijklmnopqrstuvwxyz
+abcdefghijklmnopqrstuvwxyz
+% hello > fileB
+% cat < fileB
+Hello, world!
+opqrstuvwxyz
+abcdefghijklmnopqrstuvwxyz
+% exit
+[Shell process terminated]
+% exit
+[Shell process terminated]
+====================  MENU  ====================
+  1  -  BasicSerialTest
+  2  -  KeyTest
+  3  -  EchoTest
+  4  -  LineEchoTest
+  5  -  EOFTest
+  6  -  OpenCloseTerminalTest
+  7  -  TerminalErrorTest
+  8  -  Shell
+  9  -  Quit
+Please select by number: 9
+
+FATAL ERROR in Initial Process: "Syscall 'Shutdown' was invoked by a user thread" -- TERMINATING!
+
+(To find out where execution was when the problem arose, type 'st' at the emulator prompt.)
+
+====================  KPL PROGRAM TERMINATION  ====================
+
+****  A 'debug' instruction was encountered  *****
+Done!  The next instruction to execute will be:
+001078: C0100000       sethi   0x0000,r1    ! 0x00001088 = 4232 (noGoMessage)
+
+Entering machine-level debugger...
+======================================================
+=====                                            =====
+=====         The BLITZ Machine Emulator         =====
+=====                                            =====
+=====  Copyright 2001-2007, Harry H. Porter III  =====
+=====                                            =====
+======================================================
+
+Enter a command at the prompt.  Type 'quit' to exit or 'help' for
+info about commands.
+> quit
+Number of Disk Reads    = 127
+Number of Disk Writes   = 12
+Instructions Executed   = 22903677
+Time Spent Sleeping     = 506674
+    Total Elapsed Time  = 23410351
+[lab8]% 
+
