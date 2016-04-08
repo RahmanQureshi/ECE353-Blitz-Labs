@@ -2012,6 +2012,7 @@ code Kernel
 			readSuccess: bool
 			i: int
 			c: char
+			tempBuffer: ptr to char
 
 		-- error checking
 		if fileDesc < 0 || fileDesc > MAX_FILES_PER_PROCESS-1 || currentThread.myProcess.fileDescriptor[fileDesc] == null || sizeInBytes < 0
@@ -2020,6 +2021,16 @@ code Kernel
 
 		-- if terminal device, read bytes and return
 		if currentThread.myProcess.fileDescriptor[fileDesc].kind == TERMINAL
+			-- first loop to prevent illegal page access
+			tempBuffer = buffer
+			for i = 0 to sizeInBytes-1
+				virtPage = tempBuffer asInteger / PAGE_SIZE
+				virtAddr = tempBuffer asInteger
+				if (virtPage < 0 || virtPage > currentThread.myProcess.addrSpace.numberOfPages-1) || currentThread.myProcess.addrSpace.IsValid(virtPage)==false || currentThread.myProcess.addrSpace.IsWritable(virtPage)==false
+						return -1 -- error
+				endIf
+				tempBuffer = tempBuffer+1
+			endFor
 			copiedSoFar = 0
 			for i = 0 to sizeInBytes-1
 				virtPage = buffer asInteger / PAGE_SIZE
@@ -2132,6 +2143,7 @@ code Kernel
 			readSuccess: bool
 			i: int
 			c: char
+			tempBuffer: ptr to char
 
 		-- error checking
 		if fileDesc < 0 || fileDesc > MAX_FILES_PER_PROCESS-1 || currentThread.myProcess.fileDescriptor[fileDesc] == null || sizeInBytes < 0
@@ -2139,6 +2151,16 @@ code Kernel
 		endIf
 
 		if currentThread.myProcess.fileDescriptor[fileDesc].kind == TERMINAL
+			-- first loop to prevent illegal page access
+			tempBuffer = buffer
+			for i = 0 to sizeInBytes-1
+				virtPage = tempBuffer asInteger / PAGE_SIZE
+				virtAddr = tempBuffer asInteger
+				if (virtPage < 0 || virtPage > currentThread.myProcess.addrSpace.numberOfPages-1) || currentThread.myProcess.addrSpace.IsValid(virtPage)==false || currentThread.myProcess.addrSpace.IsWritable(virtPage)==false
+						return -1 -- error
+				endIf
+				tempBuffer = tempBuffer+1
+			endFor
 			copiedSoFar = 0
 			for i = 0 to sizeInBytes-1
 				virtPage = buffer asInteger / PAGE_SIZE
