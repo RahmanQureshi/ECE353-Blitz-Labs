@@ -2030,6 +2030,9 @@ code Kernel
 				offset = virtAddr % PAGE_SIZE
 				destAddr = currentThread.myProcess.addrSpace.ExtractFrameAddr(virtPage) + offset
 				c = serialDriver.GetChar()
+				if c == '\r'
+					c = '\n'
+				endIf
 				if c == 0x04
 					break				
 				endIf
@@ -2128,6 +2131,7 @@ code Kernel
 			openFile: ptr to OpenFile
 			readSuccess: bool
 			i: int
+			c: char
 
 		-- error checking
 		if fileDesc < 0 || fileDesc > MAX_FILES_PER_PROCESS-1 || currentThread.myProcess.fileDescriptor[fileDesc] == null || sizeInBytes < 0
@@ -2144,7 +2148,11 @@ code Kernel
 				endIf
 				offset = virtAddr % PAGE_SIZE
 				destAddr = currentThread.myProcess.addrSpace.ExtractFrameAddr(virtPage) + offset
-				serialDriver.PutChar(*(destAddr asPtrTo char))
+				c = *(destAddr asPtrTo char)
+				if c=='\n'
+					serialDriver.PutChar('\r')
+				endIf
+				serialDriver.PutChar(c)
 				copiedSoFar = copiedSoFar + 1
 				buffer = buffer + 1
 			endFor
@@ -3007,7 +3015,8 @@ code Kernel
 						c = putBuffer[putBufferNextOut]
 						putBufferNextOut = (putBufferNextOut + 1) % SERIAL_PUT_BUFFER_SIZE
 						putBufferSize = putBufferSize - 1
-						*(serial_data_word_address) = c
+						*(serial_data_word_address) = charToInt(c)
+						putBufferSem.Up()
 					endIf
 					serialLock.Unlock()
 				endIf
